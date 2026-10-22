@@ -10,7 +10,7 @@ Base.metadata.create_all(bind=engine)
 app = FastAPI(title="Self-Service DevOps Platform", version="0.1.0")
 
 # Names that belong to Kubernetes itself. The platform must never touch them.
-RESERVED_NAMES = {"default", "kube-public", "kube-node-lease"}
+RESERVED_NAMES = {"default", "kube-system", "kube-system", "kube-public", "kube-node-lease"}
 
 
 def record(db: Session, actor: str, action: str, target: str, result: str, detail: str = ""):
