@@ -8,7 +8,7 @@ class EnvironmentCreate(BaseModel):
     # lowercase letters, digits, hyphens; starts with a letter; 4-30 characters
     name: str = Field(pattern=r"^[a-z][a-z0-9-]{2,28}[a-z0-9]$")
     kind: Literal["dev", "staging", "prod"]
-    owner: str = Field(min_length=2, max_length=50)
+    owner: str = Field(pattern=r"^[a-z0-9][a-z0-9._-]{0,48}[a-z0-9]$")
 
 
 class EnvironmentOut(BaseModel):

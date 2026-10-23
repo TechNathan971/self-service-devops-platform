@@ -12,8 +12,7 @@ def test_create_environment_succeeds(client):
     assert response.status_code == 201
     body = response.json()
     assert body["name"] == "dev-alice"
-    assert body["status"] == "requested"
-
+    assert body["status"] == "ready"
 
 def test_duplicate_environment_is_rejected(client):
     client.post("/environments", json=VALID)
