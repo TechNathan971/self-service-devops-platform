@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from api import models, schemas
 from api.cluster import ClusterError, KubernetesCluster
 from api.database import Base, engine, get_db
+from api.policy import evaluate
 
 Base.metadata.create_all(bind=engine)
 
@@ -103,3 +104,24 @@ def list_environments(db: Session = Depends(get_db)):
 @app.get("/audit-events", response_model=list[schemas.AuditEventOut])
 def list_audit_events(db: Session = Depends(get_db)):
     return db.scalars(select(models.AuditEvent).order_by(models.AuditEvent.id.desc()).limit(50)).all()
+
+
+
+@app.post("/policy-checks", response_model=schemas.PolicyCheckResult)
+def check_policy(payload: schemas.PolicyCheckRequest, db: Session = Depends(get_db)):
+    violations = evaluate(
+        payload.deployment, payload.env_kind, payload.requested_by, payload.approved_by
+    )
+    allowed = not violations
+    record(
+        db,
+        payload.requested_by,
+        "policy.check",
+        payload.deployment.service,
+        "allowed" if allowed else "denied",
+        ", ".join(v.rule for v in violations),
+    )
+    return {
+        "allowed": allowed,
+        "violations": [{"rule": v.rule, "message": v.message} for v in violations],
+    }
