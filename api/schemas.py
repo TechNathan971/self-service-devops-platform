@@ -1,7 +1,9 @@
 from datetime import datetime
-from typing import Literal
+from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
+
+from api.policy import DeploymentSpec
 
 
 class EnvironmentCreate(BaseModel):
@@ -32,3 +34,24 @@ class AuditEventOut(BaseModel):
     result: str
     detail: str
     created_at: datetime
+
+    
+
+Person = Annotated[str, Field(pattern=r"^[a-z0-9][a-z0-9._-]{0,48}[a-z0-9]$")]
+
+
+class PolicyCheckRequest(BaseModel):
+    deployment: DeploymentSpec
+    env_kind: Literal["dev", "staging", "prod"]
+    requested_by: Person
+    approved_by: Person | None = None
+
+
+class ViolationOut(BaseModel):
+    rule: str
+    message: str
+
+
+class PolicyCheckResult(BaseModel):
+    allowed: bool
+    violations: list[ViolationOut]
